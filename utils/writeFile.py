@@ -1,123 +1,535 @@
-from variables import *
-from classes.Resumen import Resumen
-from typing import List
+from io import TextIOWrapper
+from utils.utilitis import Util as StringUtils
 from variables import *
 import os
-
-# from openpyxl import load_workbook
-# from jinja2 import Environment, FileSystemLoader
-# from typing import List
-
-from jinja2 import Environment, FileSystemLoader
-import openpyxl
-from openpyxl import load_workbook
-
 
 class File:
     def get_dirs_of_dir_mes(dir_path, mes):
         return [file for file in os.listdir(dir_path) if os.path.isdir(os.path.join(dir_path, file)) and file[:3].lower() == mes.lower()]
 
-    def get_files_of_dir(dir, filename):
-        return [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f)) and f == filename]
+    def get_file_of_dir_credito(ruta: str, mes_proceso: str, out: TextIOWrapper, log: TextIOWrapper) -> int:
+        dirs =  File.get_dirs_of_dir_mes(ruta, mes_proceso);
+        # Recorrer las carpetas y buscar los archivos FCPUTC57.860
+
+        def escribir(formato: str, item1: str, item2: str, item3: str, item4: str, item5: str, item6: str):
+            contenido: str = formato.format(
+                item1, 
+                item2, 
+                item3, 
+                item4, 
+                item5,
+                item6 
+            )
+            out.write(contenido + "\n")
+
+        lineas = 0;
+        for carpeta in dirs:
+            # print('Carpeta:',carpeta)
+            ruta_carpeta = os.path.join(ruta, carpeta)
+            
+            # Verificar si la carpeta existe
+            if os.path.exists(ruta_carpeta):
+                print('FCPUTC57.860')
+                len: int = 0;
+                len = File.FCPUTC57_860(carpeta, ruta_carpeta,'FCPUTC57.860', escribir)
+                lineas +=  len
+                print(len, lineas)
+
+                bin1_720 = ["411851", "499930", "494170", "406267", "486520", "414764", "411850", "499929", "423691", "476515", "430906", "415366", "407440"]
+                bin2_720 = ["517707", "518310", "536570"]
+                # print(*bin1)
+                len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.720',escribir, bin1_720, bin2_720)
+
+                bin1_722 = ["433485", "433486", "422271", "425888"]
+                bin2_722 = ["541841", "541842", "521359", "552462"]
+                # print(*bin1)
+
+                print('FCPUTC57.722')
+                len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.722',escribir, bin1_722, bin2_722)
+
+                print('FCPUTC57.872')
+                len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.744',escribir, bin1_722, bin2_722)
+
+                print('FCPUTC57.744')
+                len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.744',escribir, bin1_722, bin2_722)
+
+                print('FCPUTC57.btrans')
+                len = File.FCPUTC57_Btrans(carpeta, ruta_carpeta,'FCPUTC57.Btrans',escribir)
+            else:
+                print(f"La carpeta {carpeta} no existe en la ruta {ruta}")
+                log.write(f"La carpeta {carpeta} no existe en la ruta {ruta} \n")
+        return dirs
+
+    def FCPUTC57_860(carpeta, ruta_carpeta, fileName, escribir) -> int:
+        #Buscar el archivo
+        archivos = [archivo for archivo in os.listdir(ruta_carpeta) if archivo.startswith(fileName)]
+        #Leer el archivo
+        arcContent:list[str] = []
+        for archivo in archivos:
+            ruta_archivo = os.path.join(ruta_carpeta, archivo)
+            with open(ruta_archivo, "r") as file:
+                arcContent = file.readlines()
+
+        if(len(arcContent) == 0):
+            return 0;
+
+        # print('Carpeta:', carpeta, 'file: ' ,fileName, 'registros:', len(arcContent))
+        dia = StringUtils.mid(arcContent[0], 10, 3)
+        afiliado = "" 
+        monto = ""
+        pan = ""
+        cr = ""
+        for l in arcContent:
+            codigo = l[166:].strip()
+            if codigo == '10':
+                afiliado = StringUtils.mid(l, 93, 9);
+            elif codigo == '20':
+                monto = StringUtils.mid(l, 22, 12);
+                terminal = StringUtils.mid(l, 153, 8)
+                pan = StringUtils.mid(l, 49, 19);
+                cr = '' if StringUtils.mid(l, 76, 1) == '5' else '-';
+                if(StringUtils.left(pan, 1) == '4'):
+                    if StringUtils.containsAny(StringUtils.left(pan, 6), "422044", "422045", "422046", "446334", "425881"):
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;1;{4}{5};0;0;0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                    else:
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;1;{4}{5};0;0;0;0;0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+
+                elif StringUtils.left(pan, 1) == '0':
+                    escribir('{0}{1};{2};{3};0;0;0;0;1;{4}{5};0;0;0;0;0;0;0;0', 
+                        afiliado, 
+                        terminal,
+                        pan, 
+                        dia, 
+                        cr,
+                        monto
+                    )
+                elif int(StringUtils.left(pan, 2)) >= 51 and int(StringUtils.left(pan, 2)) <= 57:
+                    if StringUtils.containsAny(StringUtils.left(pan, 6), "520148", "528004", "515673", "552327", "520154"):
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;0;0;0;0;1;{4}{5}', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                    else:
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;0;0;1;{4}{5};0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                elif StringUtils.left(pan, 6) == '627609':  #3322
+                    escribir('{0}{1};{2};{3};0;0;1;{4}{5};0;0;0;0;0;0;0;0;0;0', 
+                        afiliado, 
+                        terminal,
+                        pan, 
+                        dia, 
+                        cr,
+                        monto
+                    )
+                else:
+                    escribir('{0}{1};{2};{3};1;{4}{5};0;0;0;0;0;0;0;0;0;0;0;0', 
+                        afiliado, 
+                        terminal,
+                        pan, 
+                        dia, 
+                        cr,
+                        monto
+                    )
+        return len(arcContent)
 
 
-    def is_jinja2_template(file_path):
-        # Cargar el libro de trabajo XLSX
-        workbook = load_workbook(file_path)
+    def FCPUTC57_720(carpeta, ruta_carpeta, fileName, escribir)-> int:
+        #Buscar el archivo
+        archivos = [archivo for archivo in os.listdir(ruta_carpeta) if archivo.startswith(fileName)]
+        #Leer el archivo
+        arcContent:list[str] = []
+        for archivo in archivos:
+            ruta_archivo = os.path.join(ruta_carpeta, archivo)
+            with open(ruta_archivo, "r") as file:
+                arcContent = file.readlines()
 
-        # Recorrer todas las hojas del libro de trabajo
-        for sheet_name in workbook.sheetnames:
-            sheet = workbook[sheet_name]
+        if len(arcContent) == 0:
+            return 0;
 
-            # Recorrer todas las celdas de la hoja
-            for row in sheet.iter_rows():
-                for cell in row:
-                    # Comprobar si la celda contiene una variable de plantilla de Jinja2
-                    if cell.data_type == 's' and '{{' in cell.value and '}}' in cell.value:
-                        return True
-        return False
-
-    def generar_reporte_mensual(org: str, resumenes: List[Resumen]):
-        template_path = rutaArchivo + "Plantillas" + '\\' + f"Reporte_Mensual_{org}_plantilla.xlsx"
-        output_path = rutaArchivo + "Reportes" + '\\' + f"Reporte_Mensual_{org}.xlsx"
-
-        if not os.path.exists(os.path.join(template_path)):
-            print('No existe plantilla', template_path)
-            return
-        
-        print('es plantilla', File.is_jinja2_template(template_path))
-
-        # print(template_path)
-        # print(output_path)
-        i = 0
-        context = []
-        for item in resumenes:
-            i+=1
-            if i == 5:
-                break
-            context.append({
-                "afiliado": item.afiliado,
-                "terminal": item.terminal,
-                "terminal": item.terminal,
-                "comercio": item.comercio,
-                "ubicacion": item.ubicacion,
-                "doeContador": item.doeContador,
-                "doeMonto": item.doeMonto,
-                "dbncContador": item.doeMonto,
-                "dbncMonto": item.dbncMonto,
-                "dpContador": item.dpContador,
-                "dpMonto": item.dpMonto,
-                "voeContador": item.voeContador,
-                "voeMonto": item.voeMonto,
-                "vbncContador": item.vbncContador,
-                "vbncMonto": item.vbncMonto,
-                "moeContador": item.moeContador,
-                "moeMonto": item.moeMonto,
-                "mbncContador": item.mbncContador,
-                "mbncMonto": item.mbncMonto
-            })
-
-        print('Len arr',len(context), org)
-
-        archivos_en_ruta = os.listdir(rutaArchivo + "Plantillas" + '\\')
-        archivo_buscado = f"Reporte_Mensual_{org}_plantilla.xlsx"
-        if archivo_buscado in archivos_en_ruta:
-            print('Existe el archivo')
-        else:
-            print('No Existe el archivo')
-
-        # # Crear un entorno Jinja2
-        # env = Environment(loader=FileSystemLoader('/'))
-
-        # # Cargar la plantilla desde el archivo
-        # template = env.get_template(template_path)
-
-        # # crear un entorno Jinja2 y cargar la plantilla en la memoria
-        # loader = FileSystemLoader(searchpath='/')
-        # env = Environment(loader=loader)
-        # template = env.from_string(worksheet)
-
-        # renderizar la plantilla y escribir los resultados en el archivo de salida
-        # with open(output_path, "wb") as output_file:
-        #     rendered = template.render(context=context)
-        #     output_file.write(rendered)
+        # print('Carpeta:', carpeta, 'file: ' ,fileName, 'registros:', len(arcContent))
+        dia = StringUtils.mid(arcContent[0], 10, 3)
+        afiliado = "" 
+        monto = ""
+        pan = ""
+        cr = ""
+        for l in arcContent:
+            codigo = l[166:].strip()
+            if codigo == '10':
+                afiliado = StringUtils.mid(l, 93, 9);
+            elif codigo == '20':
+                monto = StringUtils.mid(l, 22, 12);
+                terminal = StringUtils.mid(l, 153, 8)
+                pan = StringUtils.mid(l, 49, 19);
+                cr = '' if StringUtils.mid(l, 76, 1) == '5' else '-';
+                if(StringUtils.left(pan, 1) == '4'):
+                    if StringUtils.containsAny(StringUtils.left(pan, 6), "411851", "499930", "494170", "406267", "486520", "414764", "411850", "499929", "423691", "476515", "430906", "415366", "407440"):
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;1;{4}{5};0;0;0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                    else:
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;1;{4}{5};0;0;0;0;0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                else: 
+                    if StringUtils.containsAny(StringUtils.left(pan, 6),  "517707", "518310", "536570"):
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;0;0;0;0;1;{4}{5}', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                    else: 
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;0;0;1;{4}{5};0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                    contenido = '{0}{1};{2};{3};1;{4}{5};0;0;0;0;0;0;0;0;0;0;0;0'.format(
+                        afiliado, 
+                        terminal,
+                        pan, 
+                        dia, 
+                        cr,
+                        monto)
+                    if contenido == '72000014100000000;000006012886165275004;02;1;00000002067;0;0;0;0;0;0;0;0;0;0;0;0':
+                        print(contenido)
+        return  len(arcContent)
 
 
+    def FCPUTC57_720_722(carpeta, ruta_carpeta, fileName, escribir, bin1, bin2)-> int:
+        #Buscar el archivo
+        archivos = [archivo for archivo in os.listdir(ruta_carpeta) if archivo.startswith(fileName)]
+        #Leer el archivo
+        arcContent:list[str] = []
+        for archivo in archivos:
+            ruta_archivo = os.path.join(ruta_carpeta, archivo)
+            with open(ruta_archivo, "r") as file:
+                arcContent = file.readlines()
 
-        # print('Crete reporte excel:', org, 'registros', len(resumenes))
-        # inFile = f"Reporte_Mensual_{org}_plantilla.xlsx"
-        # outFile = f"Reporte_Mensual_{org}.xlsx"
-        # print(inFile)
-        # with open(os.path.join(rutaArchivo, "Plantillas", inFile ), "rb"), \
-        #     open(os.path.join(rutaArchivo, "Reportes", outFile), "wb") as out_file:
-        #     print('bu0')
-        #     context = {"resumenes": resumenes}
-        #     print('bu1')
-        #     template_loader = FileSystemLoader(searchpath=rutaArchivo)
-        #     template_env = Environment(loader=template_loader)
-        #     print('bu2')
-        #     template = template_env.get_template("Plantillas/" + inFile).format(org)
-        #     print('bu3')
-        #     rendered_template = template.render(context)
-        #     print('bu4')
-        #     out_file.write(rendered_template)
+        if len(arcContent) == 0:
+            return 0;
+
+        # print('Carpeta:', carpeta, 'file: ' ,fileName, 'registros:', len(arcContent))
+        dia = StringUtils.mid(arcContent[0], 10, 3)
+        afiliado = "" 
+        monto = ""
+        pan = ""
+        cr = ""
+        for l in arcContent:
+            codigo = l[166:].strip()
+            if codigo == '10':
+                afiliado = StringUtils.mid(l, 93, 9);
+            elif codigo == '20':
+                monto = StringUtils.mid(l, 22, 12);
+                terminal = StringUtils.mid(l, 153, 8)
+                pan = StringUtils.mid(l, 49, 19);
+                cr = '' if StringUtils.mid(l, 76, 1) == '5' else '-';
+                if(StringUtils.left(pan, 1) == '4'):
+                    if StringUtils.containsAny(StringUtils.left(pan, 6), *bin1):
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;1;{4}{5};0;0;0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                    else:
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;1;{4}{5};0;0;0;0;0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                else: 
+                    if StringUtils.containsAny(StringUtils.left(pan, 6), *bin2):
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;0;0;0;0;1;{4}{5}', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                    else: 
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;0;0;1;{4}{5};0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+        return  len(arcContent)
+
+    def FCPD0602_720_txt(carpeta, ruta_carpeta, fileName, escribir):
+        #Buscar el archivo
+        archivos = [archivo for archivo in os.listdir(ruta_carpeta) if archivo.startswith(fileName)]
+        #Leer el archivo
+        arcContent:list[str] = []
+        for archivo in archivos:
+            ruta_archivo = os.path.join(ruta_carpeta, archivo)
+            with open(ruta_archivo, "r") as file:
+                arcContent = file.readlines()
+
+        if(len(arcContent) == 0):
+            return;
+
+        # print('Carpeta:', carpeta, 'file: ' ,fileName, 'registros:', len(arcContent))
+        dia = StringUtils.mid(arcContent[0], 27, 2)
+        afiliado = "" 
+        monto = ""
+        pan = ""
+        cr = ""
+        for l in arcContent:
+            codigo = StringUtils.left(l, 1)
+            if codigo == '6':
+                monto = StringUtils.mid(l, 29, 11);
+                pan = StringUtils.mid(l, 40, 21);
+                cr = '' if StringUtils.mid(l, 76, 2) == '40' else '-';
+            elif codigo == '7':
+                afiliado = StringUtils.mid(l, 62, 9);
+                terminal = StringUtils.mid(l, 13, 8)
+                if(StringUtils.containsAny(StringUtils.mid(pan, 5, 6), "621984", "422050", "526749", "422228", "499929", "476515")):
+                    if StringUtils.mid(pan, 5, 7) == "6219841" or StringUtils.containsAny(StringUtils.mid(pan, 5, 6), "422050", "526749", "422228"):
+                        escribir('{0}{1};{2};{3};0;0;0;0;1;{4}{5};0;0;0;0;0;0;0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                    else:
+                        escribir('{0}{1};{2};{3};0;0;1;{4}{5};0;0;0;0;0;0;0;0;0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                else: 
+                    escribir('{0}{1};{2};{3};1;{4}{5};0;0;0;0;0;0;0;0;0;0;0;0', 
+                        afiliado, 
+                        terminal,
+                        pan, 
+                        dia, 
+                        cr,
+                        monto
+                    )
+
+    def FCPUTC57_722(carpeta, ruta_carpeta, fileName, escribir) -> int:
+        #Buscar el archivo
+        archivos = [archivo for archivo in os.listdir(ruta_carpeta) if archivo.startswith(fileName)]
+        #Leer el archivo
+        arcContent:list[str] = []
+        for archivo in archivos:
+            ruta_archivo = os.path.join(ruta_carpeta, archivo)
+            with open(ruta_archivo, "r") as file:
+                arcContent = file.readlines()
+
+        if(len(arcContent) == 0):
+            return;
+
+        # print('Carpeta:', carpeta, 'file: ' ,fileName, 'registros:', len(arcContent))
+        dia = StringUtils.mid(arcContent[0], 10, 3)
+        afiliado = "" 
+        monto = ""
+        pan = ""
+        cr = ""
+        for l in arcContent:
+            codigo = l[166:].strip()
+            if codigo == '10':
+                afiliado = StringUtils.mid(l, 93, 9);
+            elif codigo == '20':
+                monto = StringUtils.mid(l, 22, 12);
+                terminal = StringUtils.mid(l, 153, 8)
+                pan = StringUtils.mid(l, 49, 19);
+                cr = '' if StringUtils.mid(l, 76, 1) == '5' else '-';
+                if(StringUtils.left(pan, 1) == '4'):
+                    if StringUtils.containsAny(StringUtils.left(pan, 6),  "433485", "433486", "422271", "425888"):
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;1;{4}{5};0;0;0;0', 
+                                afiliado, 
+                                terminal,
+                                pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                    else:
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;1;{4}{5};0;0;0;0;0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                else: 
+                    if StringUtils.containsAny(StringUtils.left(pan, 6), "541841", "541842", "521359", "552462"):
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;0;0;0;0;1;{4}{5}', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+                    else: 
+                        escribir('{0}{1};{2};{3};0;0;0;0;0;0;0;0;0;0;1;{4}{5};0;0', 
+                            afiliado, 
+                            terminal,
+                            pan, 
+                            dia, 
+                            cr,
+                            monto
+                        )
+        return len(arcContent)
+
+
+
+    def FCPUTC57_Btrans(carpeta, ruta_carpeta, fileName, escribir) -> int:
+        #Buscar el archivo
+        archivos = [archivo for archivo in os.listdir(ruta_carpeta) if archivo.startswith(fileName)]
+        #Leer el archivo
+        arcContent:list[str] = []
+        for archivo in archivos:
+            ruta_archivo = os.path.join(ruta_carpeta, archivo)
+            with open(ruta_archivo, "r") as file:
+                arcContent = file.readlines()
+
+        if(len(arcContent) == 0):
+            return 0;
+
+        # print('Carpeta:', carpeta, 'file: ' ,fileName, 'registros:', len(arcContent))
+        dia = StringUtils.mid(arcContent[0], 10, 3)
+        afiliado = "" 
+        monto = ""
+        pan = ""
+        cr = ""
+        for l in arcContent:
+            if StringUtils.mid(l, 84, 12) == '000000720720':
+                afiliado = StringUtils.mid(l, 93, 9)
+            if StringUtils.mid(l, 34, 3) == '937':
+                monto = StringUtils.mid(l, 22, 12);
+                pan = StringUtils.mid(l, 49, 19)
+                cr: str = '' if StringUtils.mid(l, 76, 1) == '5' else '-'
+                terminal = ''
+                if(StringUtils.left(pan, 1) == '4'):
+                    if StringUtils.containsAny(
+                            StringUtils.left(pan, 6), 
+                            "411851", "499930", "494170", 
+                            "406267", "486520", "414764", 
+                            "411850", "499929", "423691", 
+                            "476515", "430906", "415366", 
+                            "407440"
+                        ):
+                        escribir('{0};{1};{2};0;0;0;0;0;0;0;0;1;{3}{4};0;0;0;0', 
+                            afiliado, 
+                            pan, 
+                            dia, 
+                            cr,
+                            monto,
+                            terminal,
+                        )
+                    else:
+                        escribir('{0};{1};{2};0;0;0;0;0;0;1;{3}{4};0;0;0;0;0;0', 
+                            afiliado, 
+                            pan, 
+                            dia, 
+                            cr,
+                            monto,
+                            terminal,
+                        )
+                else: 
+                    if StringUtils.containsAny(StringUtils.left(pan, 6), "517707", "518310", "536570"):
+                        escribir('{0};{1};{2};0;0;0;0;0;0;0;0;0;0;0;0;1;{3}{4}', 
+                            afiliado, 
+                            pan, 
+                            dia, 
+                            cr,
+                            monto,
+                            terminal,
+                        )
+                    else: 
+                        escribir('{0};{1};{2};0;0;0;0;0;0;0;0;0;0;1;{3}{4};0;0', 
+                            afiliado, 
+                            pan, 
+                            dia, 
+                            cr,
+                            monto,
+                            terminal,
+                        )
+        return len(arcContent) 
+
+
+    def get_file_of_dir_debito(ruta: str, mes_proceso: str, out: TextIOWrapper, log: TextIOWrapper)-> int:
+        dirs =  File.get_dirs_of_dir_mes(ruta, mes_proceso);
+        # Recorrer las carpetas y buscar los archivos FCPUTC57.860
+
+        def escribir(formato: str, item1: str, item2: str, item3: str, item4: str, item5: str, item6: str):
+            contenido: str = formato.format(
+                item1, 
+                item2, 
+                item3, 
+                item4, 
+                item5,
+                item6 
+            )
+            out.write(contenido + "\n")
+
+        for carpeta in dirs:
+            # print('Carpeta:',carpeta)
+            ruta_carpeta = os.path.join(ruta, carpeta)
+            
+            # Verificar si la carpeta existe
+            if os.path.exists(ruta_carpeta):
+                print('FCPD0602_720.txt')
+                File.FCPD0602_720_txt(carpeta, ruta_carpeta,'FCPD0602_720.txt',escribir)
+            else:
+                print(f"La carpeta {carpeta} no existe en la ruta {ruta}")
+                log.write(f"La carpeta {carpeta} no existe en la ruta {ruta} \n")
+        return dirs
+
