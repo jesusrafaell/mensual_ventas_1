@@ -8,7 +8,6 @@ from utils.utilitis import Util
 from utils.writeFile import File
 from variables import *
 
-
 from datetime import datetime
 
 #log
@@ -16,13 +15,13 @@ logName = "logApp.txt"
 log_file = os.path.join(rutaArchivo, logName)
 with open(log_file, "w") as log:
   outFile = os.path.join(rutaArchivo + "Deposito.txt")
-  if not os.path.exists(outFile):
-    print('No existe deposito en la ruta', rutaArchivo)
-    log.write('No existe deposito en la ruta' + rutaArchivo + '\n')
+  #if not os.path.exists(outFile):
+    #print('No existe deposito en la ruta', rutaArchivo)
+    #log.write('No existe deposito en la ruta' + rutaArchivo + '\n')
 
-    now = datetime.now()
-    mes_actual = now.month
-    anio_actual = now.year
+  now = datetime.now()
+  mes_actual = now.month
+  anio_actual = now.year
 
   #Diccionario de nombres de meses en español
   meses_espanol = {
@@ -59,13 +58,13 @@ with open(log_file, "w") as log:
 
   print("Mes anterior:", mes_proceso)
 
-  # mes_proceso = "mar"; #remove
+  #mes_proceso = "may"; #remove
 
-  print("Mes: " + mes_proceso);
+  print("Mes: " + mes_proceso,outFile );
   # primero
-  dirs_ad = File.get_dirs_of_dir_mes(rutaCredito, mes_proceso)
+  # pdirs_ad = File.get_dirs_of_dir_mes(rutaCredito, mes_proceso)
 
-  print("Total carpetas credito:", len(dirs_ad));
+  # pprint("Total carpetas credito:", len(dirs_ad));
 
   with open(outFile, "w") as out:
     #Primero

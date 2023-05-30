@@ -15,6 +15,6 @@ basedatos = "jdbc:sqlserver://10.198.73.35:1433;databaseName=milpagos"
 cuentaDebito = "0000001040107160107199659"
 reportBeginFile = 30
 
-rutaCredito = "C:/archivos/Archivos_Credito/"
-rutaDebito = "C:/archivos/Archivos_Debito/"
-rutaArchivo = "C:/archivos/"
+rutaCredito = "C:/Archivos_Depositos"
+rutaDebito = r"\\10.198.71.18\ftp\FTP720"
+rutaArchivo = "C:/Archivos_Depositos/"

@@ -29,11 +29,11 @@ class File:
             
             # Verificar si la carpeta existe
             if os.path.exists(ruta_carpeta):
-                print('FCPUTC57.860')
+                #print('FCPUTC57.860')
                 len: int = 0;
                 len = File.FCPUTC57_860(carpeta, ruta_carpeta,'FCPUTC57.860', escribir)
                 lineas +=  len
-                print(len, lineas)
+                #print(len, lineas)
 
                 bin1_720 = ["411851", "499930", "494170", "406267", "486520", "414764", "411850", "499929", "423691", "476515", "430906", "415366", "407440"]
                 bin2_720 = ["517707", "518310", "536570"]
@@ -44,16 +44,16 @@ class File:
                 bin2_722 = ["541841", "541842", "521359", "552462"]
                 # print(*bin1)
 
-                print('FCPUTC57.722')
+                #print('FCPUTC57.722')
                 len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.722',escribir, bin1_722, bin2_722)
 
-                print('FCPUTC57.872')
+                #print('FCPUTC57.872')
                 len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.744',escribir, bin1_722, bin2_722)
 
-                print('FCPUTC57.744')
+                #print('FCPUTC57.744')
                 len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.744',escribir, bin1_722, bin2_722)
 
-                print('FCPUTC57.btrans')
+                #print('FCPUTC57.btrans')
                 len = File.FCPUTC57_Btrans(carpeta, ruta_carpeta,'FCPUTC57.Btrans',escribir)
             else:
                 print(f"La carpeta {carpeta} no existe en la ruta {ruta}")
@@ -526,7 +526,7 @@ class File:
             
             # Verificar si la carpeta existe
             if os.path.exists(ruta_carpeta):
-                print('FCPD0602_720.txt')
+                #print('FCPD0602_720.txt')
                 File.FCPD0602_720_txt(carpeta, ruta_carpeta,'FCPD0602_720.txt',escribir)
             else:
                 print(f"La carpeta {carpeta} no existe en la ruta {ruta}")
