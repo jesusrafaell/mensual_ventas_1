@@ -1,14 +1,7 @@
-#Lote version python v1
-import time
-from typing import List
 import os
-import os
-from utils.db import Database
-from utils.utilitis import Util
+from datetime import datetime
 from utils.writeFile import File
 from variables import *
-
-from datetime import datetime
 
 #log
 logName = "logApp.txt"
@@ -58,7 +51,7 @@ with open(log_file, "w") as log:
 
   print("Mes anterior:", mes_proceso)
 
-  #mes_proceso = "may"; #remove
+  # mes_proceso = "mar"; #remove
 
   print("Mes: " + mes_proceso,outFile );
   # primero

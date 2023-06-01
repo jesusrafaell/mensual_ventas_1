@@ -1,4 +1,5 @@
 from io import TextIOWrapper
+from utils.barrProcess import Barr
 from utils.utilitis import Util as StringUtils
 from variables import *
 import os
@@ -23,41 +24,45 @@ class File:
             out.write(contenido + "\n")
 
         lineas = 0;
+        cont = 0
         for carpeta in dirs:
+            print(Barr.barrProcess(cont, len(dirs), 40), end= "\r")
+            cont += 1;
             # print('Carpeta:',carpeta)
             ruta_carpeta = os.path.join(ruta, carpeta)
-            
             # Verificar si la carpeta existe
             if os.path.exists(ruta_carpeta):
                 #print('FCPUTC57.860')
-                len: int = 0;
-                len = File.FCPUTC57_860(carpeta, ruta_carpeta,'FCPUTC57.860', escribir)
-                lineas +=  len
+                size: int = 0;
+                size = File.FCPUTC57_860(carpeta, ruta_carpeta,'FCPUTC57.860', escribir)
+                lineas += size 
                 #print(len, lineas)
 
                 bin1_720 = ["411851", "499930", "494170", "406267", "486520", "414764", "411850", "499929", "423691", "476515", "430906", "415366", "407440"]
                 bin2_720 = ["517707", "518310", "536570"]
                 # print(*bin1)
-                len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.720',escribir, bin1_720, bin2_720)
+                size = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.720',escribir, bin1_720, bin2_720)
 
                 bin1_722 = ["433485", "433486", "422271", "425888"]
                 bin2_722 = ["541841", "541842", "521359", "552462"]
                 # print(*bin1)
 
                 #print('FCPUTC57.722')
-                len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.722',escribir, bin1_722, bin2_722)
+                size = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.722',escribir, bin1_722, bin2_722)
 
                 #print('FCPUTC57.872')
-                len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.744',escribir, bin1_722, bin2_722)
+                size = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.744',escribir, bin1_722, bin2_722)
 
                 #print('FCPUTC57.744')
-                len = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.744',escribir, bin1_722, bin2_722)
+                size = File.FCPUTC57_720_722(carpeta, ruta_carpeta,'FCPUTC57.744',escribir, bin1_722, bin2_722)
 
                 #print('FCPUTC57.btrans')
-                len = File.FCPUTC57_Btrans(carpeta, ruta_carpeta,'FCPUTC57.Btrans',escribir)
+                size = File.FCPUTC57_Btrans(carpeta, ruta_carpeta,'FCPUTC57.Btrans',escribir)
             else:
                 print(f"La carpeta {carpeta} no existe en la ruta {ruta}")
                 log.write(f"La carpeta {carpeta} no existe en la ruta {ruta} \n")
+        print(Barr.barrProcess(len(dirs), len(dirs), 40), end= "\r")
+        print()
         return dirs
 
     def FCPUTC57_860(carpeta, ruta_carpeta, fileName, escribir) -> int:
@@ -520,8 +525,11 @@ class File:
             )
             out.write(contenido + "\n")
 
+        cont = 0
         for carpeta in dirs:
             # print('Carpeta:',carpeta)
+            print(Barr.barrProcess(cont, len(dirs), 40), end= "\r")
+            cont += 1;
             ruta_carpeta = os.path.join(ruta, carpeta)
             
             # Verificar si la carpeta existe
@@ -531,5 +539,8 @@ class File:
             else:
                 print(f"La carpeta {carpeta} no existe en la ruta {ruta}")
                 log.write(f"La carpeta {carpeta} no existe en la ruta {ruta} \n")
+
+        print(Barr.barrProcess(len(dirs), len(dirs), 40), end= "\r")
+        print()
         return dirs
 
