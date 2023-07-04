@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from utils.writeFile import File
+from utils.writeFile import get_file_of_dir_credito, get_file_of_dir_debito
 from variables import *
 
 #log
@@ -49,11 +49,9 @@ with open(log_file, "w") as log:
 
   mes_proceso = meses_espanol[mes_anterior]
 
-  print("Mes anterior:", mes_proceso)
 
   # mes_proceso = "mar"; #remove
-
-  print("Mes: " + mes_proceso,outFile );
+  print("Mes: " + mes_proceso, 'Out in:', outFile );
   # primero
   # pdirs_ad = File.get_dirs_of_dir_mes(rutaCredito, mes_proceso)
 
@@ -61,9 +59,9 @@ with open(log_file, "w") as log:
 
   with open(outFile, "w") as out:
     #Primero
-    credito = File.get_file_of_dir_credito(rutaCredito, mes_proceso, out, log) #credito
-    print('Credito: ', len(credito))
+    credito = get_file_of_dir_credito(rutaCredito, mes_proceso, out, log) #credito
+    print('Listo Credito: ', len(credito))
 
     # segundo
-    debito = File.get_file_of_dir_debito(rutaDebito, mes_proceso, out, log) #debito
-    print('Debito: ', len(debito))
+    debito = get_file_of_dir_debito(rutaDebito, mes_proceso, out, log) #debito
+    print('Listo Debito: ', len(debito))
